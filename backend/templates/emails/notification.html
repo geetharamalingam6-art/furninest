@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;background:#f4f0e9;color:#342b25;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f0e9;padding:32px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#fffdf9;border:1px solid #e4d9cc;">
+        <tr><td style="padding:28px 32px;border-bottom:1px solid #e9dfd4;text-align:center;">
+          <a href="{{ store_url }}" style="font-family:Georgia,'Times New Roman',serif;font-size:24px;letter-spacing:2px;color:#342b25;text-decoration:none;">FURNINEST</a>
+        </td></tr>
+        <tr><td style="padding:36px 32px 24px;">
+          <h1 style="margin:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:30px;line-height:1.2;color:#342b25;">{{ heading }}</h1>
+          <p style="margin:0 0 14px;font-size:16px;line-height:1.65;">{{ greeting }}</p>
+          <p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#62574e;">{{ message }}</p>
+          {% if details %}<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;border-collapse:collapse;">
+            {% for label, value in details %}<tr><td style="padding:9px 0;border-bottom:1px solid #eee5db;font-size:14px;color:#75685e;">{{ label }}</td><td align="right" style="padding:9px 0;border-bottom:1px solid #eee5db;font-size:14px;color:#342b25;">{{ value }}</td></tr>{% endfor %}
+          </table>{% endif %}
+          {% if button_url %}<table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 22px;"><tr><td bgcolor="#342b25" style="padding:13px 22px;"><a href="{{ button_url }}" style="font-size:14px;font-weight:bold;color:#fffdf9;text-decoration:none;">{{ button_label }}</a></td></tr></table>{% endif %}
+          {% if button_url %}<p style="font-size:12px;line-height:1.6;color:#82766d;word-break:break-all;">If the button does not work, copy this link:<br>{{ button_url }}</p>{% endif %}
+        </td></tr>
+        <tr><td style="padding:22px 32px;background:#f8f4ee;font-size:12px;line-height:1.7;color:#75685e;">
+          <p style="margin:0 0 8px;">Made for the feeling of home.</p>
+          <p style="margin:0;">Questions? Contact <a href="mailto:{{ support_email }}" style="color:#5d4030;">{{ support_email }}</a>.</p>
+          <p style="margin:8px 0 0;">&copy; {% now "Y" %} FurniNest. All rights reserved.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

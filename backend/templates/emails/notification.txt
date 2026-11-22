@@ -1,0 +1,13 @@
+{{ heading }}
+
+{{ greeting }}
+
+{{ message }}
+{% for label, value in details %}
+{{ label }}: {{ value }}{% endfor %}
+{% if button_label %}
+{% autoescape off %}{{ button_label }}: {{ button_url }}{% endautoescape %}{% endif %}
+
+FurniNest - Made for the feeling of home.
+Support: {{ support_email }}
+{{ store_url }}
