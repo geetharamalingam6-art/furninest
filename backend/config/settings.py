@@ -7,11 +7,17 @@ from django.core.exceptions import ImproperlyConfigured
 from dotenv import dotenv_values, load_dotenv
 from corsheaders.defaults import default_headers
 
+try:
+    import dj_database_url
+except ImportError:  # Local environments may not have reinstalled requirements.txt yet.
+    dj_database_url = None
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOCAL_ENV = dotenv_values(BASE_DIR / ".env")
 load_dotenv(BASE_DIR / ".env")
 
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in {"1", "true", "yes"}
+DEBUG_DEFAULT = "False" if os.getenv("RENDER") else "True"
+DEBUG = os.getenv("DJANGO_DEBUG", DEBUG_DEFAULT).lower() in {"1", "true", "yes"}
 
 
 def mail_environment_value(name, default=""):
@@ -32,6 +38,9 @@ ALLOWED_HOSTS = [
     for host in os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,testserver").split(",")
     if host.strip()
 ]
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -67,6 +76,13 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+try:
+    import whitenoise  # noqa: F401
+except ImportError:  # WhiteNoise is installed from requirements.txt in production.
+    pass
+else:
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+
 ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
@@ -88,7 +104,25 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 DB_ENGINE = os.getenv("DB_ENGINE", "sqlite").lower()
-if DB_ENGINE == "mysql":
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+if os.getenv("RENDER") and not DATABASE_URL:
+    raise ImproperlyConfigured("DATABASE_URL must be configured for the Render deployment.")
+if DATABASE_URL:
+    if dj_database_url is None:
+        raise ImproperlyConfigured(
+            "Install dj-database-url from requirements.txt to use DATABASE_URL."
+        )
+    try:
+        DATABASES = {
+            "default": dj_database_url.parse(
+                DATABASE_URL,
+                conn_max_age=600,
+                ssl_require=not DEBUG,
+            )
+        }
+    except ValueError as error:
+        raise ImproperlyConfigured("DATABASE_URL is not a valid database URL.") from error
+elif DB_ENGINE == "mysql":
     DB_NAME = os.getenv("DB_NAME", "").strip()
     DB_USER = os.getenv("DB_USER", "").strip()
     DB_PASSWORD = os.getenv("DB_PASSWORD", "")
@@ -131,8 +165,19 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+if not DEBUG:
+    if not any("whitenoise.middleware.WhiteNoiseMiddleware" == item for item in MIDDLEWARE):
+        raise ImproperlyConfigured("Install whitenoise from requirements.txt for production static files.")
+    STORAGES = {
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Render terminates HTTPS at its proxy and forwards the original scheme here.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
@@ -209,6 +254,14 @@ CSRF_TRUSTED_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
+if RENDER_EXTERNAL_HOSTNAME:
+    render_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+    if render_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(render_origin)
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = mail_environment_value("EMAIL_HOST", "smtp.gmail.com")

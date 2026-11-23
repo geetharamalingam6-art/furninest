@@ -6,3 +6,6 @@ django-filter>=25.1,<26.0
 PyMySQL>=1.1,<2.0
 python-dotenv>=1.1,<2.0
 Pillow>=11.0,<13.0
+dj-database-url>=2.3,<3.0
+whitenoise>=6.9,<7.0
+psycopg[binary]>=3.2,<4.0
