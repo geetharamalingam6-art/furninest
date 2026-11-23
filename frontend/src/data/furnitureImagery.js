@@ -87,6 +87,9 @@ const productPhotosBySlug = Object.fromEntries(
     src,
   ]),
 )
+const productPhotosByCanonicalSlug = Object.fromEntries(
+  Object.entries(productPhotosBySlug).map(([slug, src]) => [slug.replace(/-\d+-/, '-'), src]),
+)
 
 function findRoom(search) {
   return roomImages.find(
@@ -109,7 +112,8 @@ export function isDemoProductImage(image = '') {
 
 export function getProductImage(product = {}) {
   const furnitureImage = getFurnitureImage(product)
-  const productPhoto = productPhotosBySlug[product.slug]
+  const slug = String(product.slug || '')
+  const productPhoto = productPhotosBySlug[slug] || productPhotosByCanonicalSlug[slug.replace(/-\d+-/, '-')]
   const uploadedImage = product.images?.find((image) => image.image && !isDemoProductImage(image.image))
   return {
     src: productPhoto || uploadedImage?.image || furnitureImage.src,
