@@ -173,7 +173,7 @@ if not DEBUG:
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", str(BASE_DIR / "media")))
 
 # Render terminates HTTPS at its proxy and forwards the original scheme here.

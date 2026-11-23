@@ -40,10 +40,15 @@ urlpatterns = [
     path("api/dashboard/", include("dashboard.urls")),
 ]
 
+SERVE_MEDIA_FILES = os.getenv(
+    "SERVE_MEDIA_FILES",
+    "True" if os.getenv("RENDER") else "False",
+).lower() in {"1", "true", "yes"}
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-elif os.getenv("SERVE_MEDIA_FILES", "").lower() in {"1", "true", "yes"}:
-    # Enable only when MEDIA_ROOT points at persistent storage (for example, a Render disk).
+elif SERVE_MEDIA_FILES:
+    # Serves files from MEDIA_ROOT, including images bundled in backend/media.
     urlpatterns += [
         re_path(
             r"^media/(?P<path>.*)$",
