@@ -29,6 +29,12 @@ python manage.py runserver
 The backend health endpoint is available at `http://127.0.0.1:8000/api/health/`.
 The development storefront is available at `http://localhost:5173/`.
 
+## Deploy the storefront on Render
+
+The Django service (`furninest-rfui.onrender.com`) hosts the API and uploaded media; its root URL is not the React storefront. Create a Render Blueprint from this repository using `render.yaml` to add the `furninest-storefront` Static Site. Render builds `frontend/`, publishes `dist/`, and rewrites product routes to the React app.
+
+After the static site is created, copy its public URL from Render and set `FRONTEND_BASE_URL` to that URL in the existing Django service's environment. Django uses this value to allow the storefront's API requests. Open the Static Site URL—not the backend URL—to view the app.
+
 ## Catalog and storefront
 
 - `GET /api/categories/` — active categories and their active product counts.
